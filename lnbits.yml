@@ -1,0 +1,23 @@
+---
+- name: Install Lnbits in Docker
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Pull the Lnbits Docker image
+      docker_image:
+        name: lnbits/lnbits
+        source: pull
+
+    - name: Start the Lnbits Docker container
+      docker_container:
+        name: lnbits
+        image: lnbits/lnbits
+        state: started
+        restart_policy: always
+        published_ports:
+          - "5000:5000"
+        networks:
+          - name: lnbits_network
+        volumes:
+          - /path/to/lnbits_data:/lnbits/data
