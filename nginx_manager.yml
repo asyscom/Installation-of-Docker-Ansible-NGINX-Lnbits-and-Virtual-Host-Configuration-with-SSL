@@ -1,0 +1,26 @@
+---
+- name: Install NGINX Manager in Docker
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Pull the NGINX Manager Docker image
+      docker_image:
+        name: jc21/nginx-proxy-manager
+        source: pull
+
+    - name: Start the NGINX Manager Docker container
+      docker_container:
+        name: nginx-proxy-manager
+        image: jc21/nginx-proxy-manager
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:80"
+          - "443:443"
+          - "81:81"  # Access port to the manager
+        networks:
+          - name: lnbits_network
+        volumes:
+          - /path/to/nginx_data:/data
+          - /path/to/nginx_config:/config
