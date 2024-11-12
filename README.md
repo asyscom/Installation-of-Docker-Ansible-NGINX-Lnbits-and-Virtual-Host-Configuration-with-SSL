@@ -49,7 +49,7 @@ This repository provides instructions for installing Docker, Ansible, NGINX, and
 
 3. Install Ansible:
     ```bash
-    sudo dnf install ansible -y
+    sudo dnf install ansible-core
     ```
 
 ## 2. Install Docker via Ansible
