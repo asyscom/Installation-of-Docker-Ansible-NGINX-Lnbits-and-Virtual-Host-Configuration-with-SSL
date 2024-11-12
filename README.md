@@ -44,12 +44,12 @@ This repository provides instructions for installing Docker, Ansible, NGINX, and
 
 1. Install the Docker repository:
     ```bash
-    sudo dnf install https://download.docker.com/linux/centos/docker-ce.repo -y
+    sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     ```
 
 2. Install Docker:
     ```bash
-    sudo dnf install docker-ce docker-ce-cli containerd.io -y
+    sudo dnf install docker-ce docker-ce-cli containerd.io
     ```
 
 3. Start and enable Docker:
