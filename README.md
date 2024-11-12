@@ -1,4 +1,3 @@
-
 ---
 
 # Installation of Docker, Ansible, NGINX, Lnbits, and Virtual Host Configuration with SSL
@@ -11,55 +10,7 @@ This repository provides instructions for installing Docker, Ansible, NGINX, and
 - Root access or sudo privileges.
 - Internet connection.
 
-## 1. Install Docker
-
-### On Ubuntu:
-
-1. Update the system:
-    ```bash
-    sudo apt update && sudo apt upgrade -y
-    ```
-
-2. Add the Docker repository:
-    ```bash
-    sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    ```
-
-3. Install Docker:
-    ```bash
-    sudo apt update
-    sudo apt install docker-ce docker-ce-cli containerd.io -y
-    ```
-
-4. Verify the installation:
-    ```bash
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo docker --version
-    ```
-
-### On Rocky Linux:
-
-1. Install the Docker repository:
-    ```bash
-    sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    ```
-
-2. Install Docker:
-    ```bash
-    sudo dnf install docker-ce docker-ce-cli containerd.io
-    ```
-
-3. Start and enable Docker:
-    ```bash
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo docker --version
-    ```
-
-## 2. Install Ansible
+## 1. Install Ansible
 
 ### On Ubuntu:
 
@@ -100,6 +51,112 @@ This repository provides instructions for installing Docker, Ansible, NGINX, and
     ```bash
     sudo dnf install ansible -y
     ```
+
+## 2. Install Docker via Ansible
+
+Once Ansible is installed, you can proceed with installing Docker via Ansible.
+
+### On Ubuntu:
+
+1. Create a file named `install_docker_ubuntu.yml` with the following content:
+
+    ```yaml
+    ---
+    - name: Install Docker on Ubuntu
+      hosts: localhost
+      become: yes
+
+      tasks:
+        - name: Install required dependencies
+          apt:
+            name:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - software-properties-common
+            state: present
+            update_cache: yes
+
+        - name: Add Docker GPG key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: Add Docker repository
+          apt_repository:
+            repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable
+            state: present
+
+        - name: Install Docker packages
+          apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+            state: present
+            update_cache: yes
+
+        - name: Start Docker service
+          service:
+            name: docker
+            state: started
+            enabled: yes
+    ```
+
+2. Run the Ansible playbook:
+
+    ```bash
+    ansible-playbook install_docker_ubuntu.yml
+    ```
+
+3. This will install Docker on your Ubuntu system via Ansible.
+
+### On Rocky Linux:
+
+1. Create a file named `install_docker_rocky.yml` with the following content:
+
+    ```yaml
+    ---
+    - name: Install Docker on Rocky Linux
+      hosts: localhost
+      become: yes
+
+      tasks:
+        - name: Add Docker repository
+          dnf:
+            name: https://download.docker.com/linux/centos/docker-ce.repo
+            state: present
+
+        - name: Install Docker packages
+          dnf:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+            state: present
+
+        - name: Start Docker service
+          service:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Add user to Docker group
+          user:
+            name: "{{ ansible_user }}"
+            groups: docker
+            append: yes
+    ```
+
+2. Run the Ansible playbook:
+
+    ```bash
+    ansible-playbook install_docker_rocky.yml
+    ```
+
+3. This will install Docker on your Rocky Linux system via Ansible.
+
+4. After running the playbook, you should log out and log back in to apply the Docker group changes, allowing you to run Docker commands without `sudo`.
 
 ## 3. Create a Custom Docker Network
 
@@ -221,7 +278,7 @@ To install **NGINX Manager** in Docker via Ansible, follow these steps:
 
 If you appreciate my work, you can make a donation in BTC or via Lightning Network.
 
-- For **BTC donations**, bc1qrvlwjutnztfxkqtnjdwwqa6uzd9ljdv8asdknn
+- For **BTC donations**, you can use this link: [BTC Tip Jar](https://davidebtc.me/tipjar/1).
 - For **Lightning Network donations**, you can use: `tips@davidebtc.me`.
 
 Your support is greatly appreciated!
@@ -230,8 +287,8 @@ Your support is greatly appreciated!
 
 ### Summary of Steps:
 
-1. **Install Docker** on Ubuntu or Rocky Linux.
-2. **Install Ansible**.
+1. **Install Ansible** on Ubuntu or Rocky Linux.
+2. **Install Docker** using Ansible.
 3. **Create a Docker network** for communication between containers.
 4. **Install NGINX Manager** in Docker.
 5. **Install Lnbits** in Docker.
@@ -240,3 +297,5 @@ Your support is greatly appreciated!
 Now you have a complete setup with Docker, NGINX, and Lnbits, all managed through Ansible, with a secure Virtual Host accessible via HTTPS.
 
 ---
+
+This version now installs **Ansible** first, followed by Docker installation via Ansible, as required. Let me know if this works for you!
