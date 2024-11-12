@@ -36,50 +36,71 @@ This repository provides instructions for installing Docker, Ansible, NGINX, and
 ## 2. Install Docker via Ansible
 
 Once Ansible is installed, you can proceed with installing Docker via Ansible.
+```bash
+sudo add-apt-repository --remove ppa:ansible/ansible
+sudo apt-get update   
+```
+
+
+
 
 1. Create a file named `install_docker_ubuntu.yml` with the following content:
 
-    ```yaml
-    ---
-    - name: Install Docker on Ubuntu
-      hosts: localhost
-      become: yes
+```yaml
+---
+- name: Install Docker on Ubuntu
+  hosts: localhost
+  become: yes
 
-      tasks:
-        - name: Install required dependencies
-          apt:
-            name:
-              - apt-transport-https
-              - ca-certificates
-              - curl
-              - software-properties-common
-            state: present
-            update_cache: yes
+  tasks:
+    - name: Gather facts to get distribution information
+      setup:
+        gather_subset:
+          - distribution
 
-        - name: Add Docker GPG key
-          apt_key:
-            url: https://download.docker.com/linux/ubuntu/gpg
-            state: present
+    - name: Set Docker repository URL dynamically
+      set_fact:
+        docker_repo_url: |
+          {% if ansible_distribution_release == 'oracular' %}
+            deb [arch=amd64] https://download.docker.com/linux/ubuntu oracular stable
+          {% else %}
+            deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
+          {% endif %}
 
-        - name: Add Docker repository
-          apt_repository:
-            repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable
-            state: present
+    - name: Install required dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+        update_cache: yes
 
-        - name: Install Docker packages
-          apt:
-            name:
-              - docker-ce
-              - docker-ce-cli
-              - containerd.io
-            state: present
-            update_cache: yes
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-        - name: Start Docker service
-          service:
-            name: docker
-            state: started
-            enabled: yes
+    - name: Add Docker repository
+      apt_repository:
+        repo: "{{ docker_repo_url }}"
+        state: present
+
+    - name: Install Docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
     ```
 
 2. Run the Ansible playbook:
