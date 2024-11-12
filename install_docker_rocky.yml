@@ -1,0 +1,30 @@
+---
+- name: Install Docker on Rocky Linux
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Add Docker repository
+      dnf:
+        name: https://download.docker.com/linux/centos/docker-ce.repo
+        state: present
+
+    - name: Install Docker packages
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to Docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
